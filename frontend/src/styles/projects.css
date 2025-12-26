@@ -1,0 +1,57 @@
+.projects-page {
+  padding: 24px;
+}
+
+.projects-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.projects-header button {
+  padding: 10px 16px;
+}
+
+.projects-filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.projects-filters input,
+.projects-filters select {
+  padding: 8px;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.project-card {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.project-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.actions button {
+  margin-left: 8px;
+}
+
+.actions .danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}

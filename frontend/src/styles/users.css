@@ -1,0 +1,51 @@
+.users-page {
+  padding: 24px;
+}
+
+.users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.users-filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.users-filters input,
+.users-filters select {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.users-table {
+  width: 100%;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.users-table th,
+.users-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.role {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.role.tenant_admin {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.role.user {
+  background: #f3f4f6;
+}

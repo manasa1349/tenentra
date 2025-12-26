@@ -1,0 +1,45 @@
+.project-details {
+  padding: 24px;
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.project-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.tasks-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.tasks-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.tasks-table {
+  width: 100%;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tasks-table th,
+.tasks-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
