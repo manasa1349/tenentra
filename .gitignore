@@ -1,0 +1,29 @@
+# Node & Package Managers
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+
+# Build Outputs
+dist/
+build/
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env.local
+.env.production
+.env.test
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+
+# Docker
+*.pid
