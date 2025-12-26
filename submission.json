@@ -2,16 +2,40 @@
   "testCredentials": {
     "superAdmin": {
       "email": "superadmin@system.com",
-      "password": "Admin@123"
+      "password": "Admin@123",
+      "role": "super_admin",
+      "tenantId": null
     },
-    "tenantAdmin": {
-      "email": "admin@demo.com",
-      "password": "Demo@123",
-      "tenant": "demo"
-    },
-    "users": [
-      { "email": "user1@demo.com", "password": "User@123" },
-      { "email": "user2@demo.com", "password": "User@123" }
+    "tenants": [
+      {
+        "name": "Demo Company",
+        "subdomain": "demo",
+        "status": "active",
+        "subscriptionPlan": "pro",
+        "admin": {
+          "email": "admin@demo.com",
+          "password": "Demo@123",
+          "role": "tenant_admin"
+        },
+        "users": [
+          {
+            "email": "user1@demo.com",
+            "password": "User@123",
+            "role": "user"
+          },
+          {
+            "email": "user2@demo.com",
+            "password": "User@123",
+            "role": "user"
+          }
+        ],
+        "projects": [
+          {
+            "name": "Internal Tooling",
+            "description": "Internal development tools project"
+          }
+        ]
+      }
     ]
   }
 }
