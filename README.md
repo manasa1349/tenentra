@@ -274,7 +274,21 @@ Returns success only after:
 - Frontend depends on backend health
 
 ---
+## Demo Video
 
+A full demo video is provided covering:
+
+- Application overview
+- Architecture explanation
+- Multi-tenancy demonstration
+- Role-based access control
+- Project and task management
+- Code walkthrough
+
+**YouTube Link:**
+[Link](https://youtu.be/d2NqZXAeIh4)
+
+---
 ## Limitations
 
 * UI design is functional but minimal
