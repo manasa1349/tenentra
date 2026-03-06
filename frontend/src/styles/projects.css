@@ -1,57 +1,80 @@
-.projects-page {
-  padding: 24px;
-}
-
-.projects-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.projects-header button {
-  padding: 10px 16px;
-}
-
-.projects-filters {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.projects-filters input,
-.projects-filters select {
-  padding: 8px;
-}
-
-.projects-grid {
+.projects-page .projects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 .project-card {
-  background: white;
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  background: linear-gradient(150deg, #ffffff 0%, #f4f9fc 100%);
+  box-shadow: 0 12px 24px rgba(16, 41, 58, 0.08);
+  padding: 14px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(16, 41, 58, 0.11);
+}
+
+.project-card h3 {
+  font-size: 18px;
+  margin-bottom: 6px;
+  word-break: break-word;
+}
+
+.project-card p {
+  color: var(--text-muted);
+  word-break: break-word;
 }
 
 .project-meta {
+  display: grid;
+  gap: 8px;
+}
+
+.meta-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-top: 12px;
+  justify-content: space-between;
+  gap: 10px;
 }
 
-.actions button {
-  margin-left: 8px;
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.actions .danger {
-  background: #fee2e2;
-  color: #b91c1c;
+.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-color: #ffc9c4;
+}
+
+.danger:hover {
+  background: #ffd6d1;
+}
+
+@media (max-width: 760px) {
+  .projects-page .projects-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-card {
+    padding: 12px;
+  }
+
+  .project-card h3 {
+    font-size: 17px;
+  }
+
+  .meta-row small {
+    font-size: 12px;
+  }
 }

@@ -1,41 +1,57 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
+  background: rgba(17, 26, 37, 0.5);
+  display: grid;
+  place-items: center;
+  z-index: 40;
+  padding: 18px;
 }
 
 .modal {
-  background: white;
-  padding: 24px;
-  width: 400px;
-  border-radius: 8px;
+  width: min(520px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #d7e2ee;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.modal h2 {
+  margin-bottom: 8px;
+}
+
+.modal form {
+  display: grid;
+  gap: 8px;
 }
 
 .modal label {
-  margin-top: 12px;
-  display: block;
+  font-weight: 700;
+  color: #334b64;
+  margin-top: 4px;
 }
 
-.modal input,
-.modal textarea,
-.modal select {
-  width: 100%;
-  padding: 8px;
-  margin-top: 4px;
+.modal textarea {
+  min-height: 80px;
+  resize: vertical;
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 16px;
-  gap: 10px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.error {
-  color: #b91c1c;
-  margin-bottom: 10px;
+.modal-actions button[type='button'] {
+  background: #edf3f8;
+  color: #23415d;
+  border: 1px solid #d5e3ef;
+}
+
+.modal .checkbox {
+  margin: 6px 0;
 }

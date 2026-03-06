@@ -1,103 +1,159 @@
-import { useEffect, useState } from "react";
-import api from "../api/api";
-import ProjectModal from "../components/ProjectModal";
-import "../styles/projects.css";
-import { useNavigate } from "react-router-dom";
+﻿import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../api/api';
+import { useAuth } from '../auth/AuthContext';
+import ProjectModal from '../components/ProjectModal';
+import '../styles/projects.css';
 
 export default function Projects() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
-  const [filtered, setFiltered] = useState([]);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('');
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
-  const navigate = useNavigate();
+  const canManageProjects = user?.role === 'tenant_admin' || user?.role === 'super_admin';
 
-  const loadProjects = async () => {
-    const res = await api.get("/projects");
-    setProjects(res.data.data.projects);
-    setFiltered(res.data.data.projects);
+  const loadProjects = useCallback(
+    async (nextPage = page, nextStatus = status, nextSearch = search) => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        params.set('page', String(nextPage));
+        params.set('limit', '12');
+        if (nextStatus) params.set('status', nextStatus);
+        if (nextSearch.trim()) params.set('search', nextSearch.trim());
+
+        const res = await api.get(`/projects?${params.toString()}`);
+        setProjects(res.data.data.projects || []);
+        setPagination(res.data.data.pagination || null);
+        setPage(nextPage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, search, status]
+  );
+
+  useEffect(() => {
+    loadProjects(1, status, search);
+  }, [status, loadProjects, search]);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    loadProjects(1, status, search);
   };
 
-  useEffect(() => {
-    loadProjects();
-  }, []);
-
-  useEffect(() => {
-    let data = [...projects];
-    if (search) {
-      data = data.filter(p =>
-        p.name.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-    if (status) {
-      data = data.filter(p => p.status === status);
-    }
-    setFiltered(data);
-  }, [search, status, projects]);
-
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this project?")) return;
+    if (!window.confirm('Delete this project?')) return;
     await api.delete(`/projects/${id}`);
-    loadProjects();
+    loadProjects(page, status, search);
   };
 
   return (
-    <div className="projects-page">
-      <div className="projects-header">
+    <div className='page projects-page'>
+      <div className='page-header projects-header'>
         <h1>Projects</h1>
-        <button onClick={() => { setEditing(null); setShowModal(true); }}>
-          + New Project
-        </button>
+        {canManageProjects && (
+          <button
+            onClick={() => {
+              setEditing(null);
+              setShowModal(true);
+            }}
+          >
+            + New Project
+          </button>
+        )}
       </div>
 
-      <div className="projects-filters">
+      <form className='toolbar' onSubmit={handleSearchSubmit}>
         <input
-          placeholder="Search projects..."
+          placeholder='Search projects...'
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
         />
-        <select value={status} onChange={e => setStatus(e.target.value)}>
-          <option value="">All Status</option>
-          <option value="active">Active</option>
-          <option value="completed">Completed</option>
-          <option value="archived">Archived</option>
+        <select value={status} onChange={(e) => setStatus(e.target.value)}>
+          <option value=''>All Status</option>
+          <option value='active'>Active</option>
+          <option value='completed'>Completed</option>
+          <option value='archived'>Archived</option>
         </select>
-      </div>
+        <button type='submit'>Apply</button>
+      </form>
 
-      {filtered.length === 0 && <p>No projects found.</p>}
-
-      <div className="projects-grid">
-        {filtered.map(p => (
-          <div className="project-card" key={p.id}>
-            <div>
-              <h3>{p.name}</h3>
-              <p>{p.description || "No description"}</p>
-            </div>
-
-            <div className="project-meta">
-              <span className={`badge ${p.status}`}>{p.status}</span>
-              <div className="actions">
-                <button onClick={() => navigate(`/projects/${p.id}`)}>
-                  View
-                </button>
-                <button onClick={() => { setEditing(p); setShowModal(true); }}>
-                  Edit
-                </button>
-                <button className="danger" onClick={() => handleDelete(p.id)}>
-                  Delete
-                </button>
+      {loading ? (
+        <p>Loading projects...</p>
+      ) : projects.length === 0 ? (
+        <p>No projects found.</p>
+      ) : (
+        <div className='projects-grid'>
+          {projects.map((project) => (
+            <article className='project-card' key={project.id}>
+              <div>
+                <h3>{project.name}</h3>
+                <p>{project.description || 'No description'}</p>
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
 
-      {showModal && (
+              <div className='project-meta'>
+                <div className='meta-row'>
+                  <span className={`badge ${project.status}`}>{project.status}</span>
+                  <small>
+                    {project.taskCount} tasks • {project.completedTaskCount} done
+                  </small>
+                </div>
+
+                <small>Owner: {project.createdBy?.fullName || 'Unknown'}</small>
+
+                <div className='actions'>
+                  <button onClick={() => navigate(`/projects/${project.id}`)}>View</button>
+                  {canManageProjects && (
+                    <button
+                      onClick={() => {
+                        setEditing(project);
+                        setShowModal(true);
+                      }}
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {canManageProjects && (
+                    <button className='danger' onClick={() => handleDelete(project.id)}>
+                      Delete
+                    </button>
+                  )}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {pagination && (
+        <div className='pager'>
+          <button disabled={page <= 1} onClick={() => loadProjects(page - 1, status, search)}>
+            Previous
+          </button>
+          <span>
+            Page {pagination.currentPage} of {pagination.totalPages}
+          </span>
+          <button
+            disabled={page >= pagination.totalPages}
+            onClick={() => loadProjects(page + 1, status, search)}
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {showModal && canManageProjects && (
         <ProjectModal
           project={editing}
           onClose={() => setShowModal(false)}
-          onSaved={loadProjects}
+          onSaved={() => loadProjects(page, status, search)}
         />
       )}
     </div>

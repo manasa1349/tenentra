@@ -1,4 +1,5 @@
 {
+  "projectName": "Tenantra",
   "testCredentials": {
     "superAdmin": {
       "email": "superadmin@system.com",

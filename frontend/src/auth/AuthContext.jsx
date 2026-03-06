@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import api from "../api/api";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useEffect, useState } from 'react';
+import api from '../api/api';
 
 const AuthContext = createContext(null);
 
@@ -8,7 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const loadUser = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (!token) {
       setUser(null);
       setLoading(false);
@@ -16,13 +17,13 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const res = await api.get("/auth/me");
-      const userData = res.data?.data?.user || res.data?.data;
-      if (!userData) throw new Error("Invalid /me response");
+      const res = await api.get('/auth/me');
+      const userData = res.data?.data;
+      if (!userData) throw new Error('Invalid /auth/me response');
       setUser(userData);
-    } catch (err) {
-      console.warn("Auth failed, clearing token");
-      localStorage.removeItem("token");
+    } catch {
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
       setUser(null);
     } finally {
       setLoading(false);
@@ -33,14 +34,27 @@ export const AuthProvider = ({ children }) => {
     loadUser();
   }, []);
 
-  const login = (token) => {
-    localStorage.setItem("token", token);
+  const login = async (token, rememberMe = true) => {
+    if (rememberMe) {
+      localStorage.setItem('token', token);
+      sessionStorage.removeItem('token');
+    } else {
+      sessionStorage.setItem('token', token);
+      localStorage.removeItem('token');
+    }
+
     setLoading(true);
-    loadUser();
+    await loadUser();
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch {
+      // no-op
+    }
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     setUser(null);
   };
 
@@ -52,6 +66,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user,
         login,
         logout,
+        refreshUser: loadUser,
       }}
     >
       {!loading && children}
@@ -61,6 +76,6 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
   return ctx;
 };

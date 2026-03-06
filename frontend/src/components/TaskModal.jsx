@@ -1,86 +1,161 @@
-import { useState } from "react";
-import api from "../api/api";
-import "../styles/tasks.css";
-import { useEffect } from "react";
+import { useEffect, useState } from 'react';
+import api from '../api/api';
+import '../styles/modal.css';
 
 export default function TaskModal({ projectId, task, onClose, onSaved }) {
-  const [title, setTitle] = useState(task?.title || "");
-  const [priority, setPriority] = useState(task?.priority || "medium");
-  const [dueDate, setDueDate] = useState(task?.dueDate?.split("T")[0] || "");
-  const [error, setError] = useState("");
-  const [assignedToName,setAssignedTo]=useState(task?.assignedTo||"user1");
-  const [users, setUsers] = useState([]);
-  useEffect(() => {
-  const loadUsers = async () => {
-    try {
-      const res = await api.get("/users"); 
-      setUsers(res.data.data.users);
-    } catch (err) {
-      console.error("Failed to load users", err);
-    }
-  };
+  const isEdit = !!task;
 
-  loadUsers();
-}, []);
+  const [form, setForm] = useState({
+    title: task?.title || '',
+    description: task?.description || '',
+    status: task?.status || 'todo',
+    priority: task?.priority || 'medium',
+    assignedTo: task?.assignedTo?.id || '',
+    dueDate: task?.dueDate ? task.dueDate.split('T')[0] : '',
+  });
+
+  const [users, setUsers] = useState([]);
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        const meRes = await api.get('/auth/me');
+        const tenantId = meRes.data.data.tenant?.id;
+        if (!tenantId) return;
+
+        const usersRes = await api.get(`/tenants/${tenantId}/users?limit=100`);
+        setUsers(usersRes.data.data.users || []);
+      } catch {
+        setUsers([]);
+      }
+    };
+
+    loadUsers();
+  }, []);
+
+  const updateField = (name, value) => {
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!title.trim()) {
-      setError("Title required");
+    setError('');
+
+    if (!form.title.trim()) {
+      setError('Task title is required');
       return;
     }
 
-    if (task) {
-      await api.put(`/tasks/${task.id}`, { title, priority, dueDate });
-    } else {
-      await api.post(`/projects/${projectId}/tasks`, {
-        title,
-        priority,
-        assignedToName,
-        dueDate,
-      });
-    }
+    setSaving(true);
 
-    onSaved();
-    onClose();
+    try {
+      const payload = {
+        title: form.title.trim(),
+        description: form.description || null,
+        status: form.status,
+        priority: form.priority,
+        assignedTo: form.assignedTo || null,
+        dueDate: form.dueDate || null,
+      };
+
+      if (isEdit) {
+        await api.put(`/tasks/${task.id}`, payload);
+      } else {
+        await api.post(`/projects/${projectId}/tasks`, {
+          title: payload.title,
+          description: payload.description,
+          priority: payload.priority,
+          assignedTo: payload.assignedTo,
+          dueDate: payload.dueDate,
+        });
+      }
+
+      await onSaved();
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to save task');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <div className="modal-backdrop">
-      <div className="modal">
-        <h2>{task ? "Edit Task" : "New Task"}</h2>
+    <div className='modal-backdrop'>
+      <div className='modal'>
+        <h2>{isEdit ? 'Edit Task' : 'Create Task'}</h2>
 
-        {error && <p className="error">{error}</p>}
+        {error && <p className='error'>{error}</p>}
 
         <form onSubmit={submit}>
-          <label>Title</label>
-          <input value={title} onChange={e => setTitle(e.target.value)} />
+          <label htmlFor='taskTitle'>Title</label>
+          <input
+            id='taskTitle'
+            value={form.title}
+            onChange={(e) => updateField('title', e.target.value)}
+          />
 
-          <label>Priority</label>
-          <select value={priority} onChange={e => setPriority(e.target.value)}>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
-          <label>Assign To</label>
+          <label htmlFor='taskDescription'>Description</label>
+          <textarea
+            id='taskDescription'
+            value={form.description}
+            onChange={(e) => updateField('description', e.target.value)}
+          />
+
+          {isEdit && (
+            <>
+              <label htmlFor='taskStatus'>Status</label>
+              <select
+                id='taskStatus'
+                value={form.status}
+                onChange={(e) => updateField('status', e.target.value)}
+              >
+                <option value='todo'>Todo</option>
+                <option value='in_progress'>In Progress</option>
+                <option value='completed'>Completed</option>
+              </select>
+            </>
+          )}
+
+          <label htmlFor='taskPriority'>Priority</label>
           <select
-            value={assignedToName}
-            onChange={e => setAssignedTo(e.target.value)}
+            id='taskPriority'
+            value={form.priority}
+            onChange={(e) => updateField('priority', e.target.value)}
           >
-            <option value="">Unassigned</option>
-            <option value="">user</option>
-            {users.map(u => (
-              <option key={u.id} value={u.id}>
-                {u.fullName}
+            <option value='low'>Low</option>
+            <option value='medium'>Medium</option>
+            <option value='high'>High</option>
+          </select>
+
+          <label htmlFor='taskAssignedTo'>Assign To</label>
+          <select
+            id='taskAssignedTo'
+            value={form.assignedTo}
+            onChange={(e) => updateField('assignedTo', e.target.value)}
+          >
+            <option value=''>Unassigned</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.fullName} ({user.email})
               </option>
             ))}
           </select>
-          <label>Due Date</label>
-          <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
 
-          <div className="modal-actions">
-            <button type="button" onClick={onClose}>Cancel</button>
-            <button>Save</button>
+          <label htmlFor='taskDueDate'>Due Date</label>
+          <input
+            id='taskDueDate'
+            type='date'
+            value={form.dueDate}
+            onChange={(e) => updateField('dueDate', e.target.value)}
+          />
+
+          <div className='modal-actions'>
+            <button type='button' onClick={onClose}>
+              Cancel
+            </button>
+            <button disabled={saving}>{saving ? 'Saving...' : 'Save Task'}</button>
           </div>
         </form>
       </div>

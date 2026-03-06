@@ -1,3 +1,130 @@
-.tasks-table select {
-  padding: 4px;
+.tasks-page .task-columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.tasks-page .view-toggle {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.tasks-page .view-toggle button {
+  background: #edf5fb;
+  color: #1f445d;
+  border: 1px solid #d4e4f1;
+}
+
+.tasks-page .view-toggle button.active {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+
+.tasks-page .task-column {
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  background: linear-gradient(145deg, #ffffff 0%, #f4f9fc 100%);
+  box-shadow: 0 12px 24px rgba(16, 41, 58, 0.08);
+  align-self: start;
+  min-height: 0;
+}
+
+.tasks-page .task-column.status-todo {
+  border-top: 4px solid #6f9fcf;
+}
+
+.tasks-page .task-column.status-in_progress {
+  border-top: 4px solid #d6a54b;
+}
+
+.tasks-page .task-column.status-completed {
+  border-top: 4px solid #62aa94;
+}
+
+.tasks-page .task-column > header {
+  padding: 12px 12px 8px;
+  border-bottom: 1px solid #e0e9f1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tasks-page .task-column > header h2 {
+  font-size: 16px;
+  text-transform: capitalize;
+}
+
+.tasks-page .task-column > header span {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #edf4fc;
+  color: #23405d;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.tasks-page .task-list {
+  padding: 10px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.tasks-page .task-card {
+  border: 1px solid #dbe7f1;
+  border-radius: 12px;
+  background: #fbfdff;
+  padding: 11px;
+  display: grid;
+  gap: 8px;
+}
+
+.tasks-page .task-card h3 {
+  font-size: 16px;
+  word-break: break-word;
+}
+
+.tasks-page .task-card p {
+  color: var(--text-muted);
+  font-size: 14px;
+  word-break: break-word;
+}
+
+.tasks-page .task-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tasks-page .task-card select {
+  margin-top: 2px;
+}
+
+@media (max-width: 1100px) {
+  .tasks-page .task-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .tasks-page .view-toggle {
+    width: 100%;
+  }
+
+  .tasks-page .view-toggle button {
+    flex: 1;
+  }
+}
+
+@media (max-width: 760px) {
+  .tasks-page .task-column > header h2 {
+    font-size: 15px;
+  }
+
+  .tasks-page .task-meta {
+    font-size: 13px;
+  }
 }

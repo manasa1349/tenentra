@@ -1,0 +1,87 @@
+.account-page .page-header h1 {
+  background: linear-gradient(135deg, #0f4f51 0%, #0c7680 55%, #f18f01 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.account-grid.single {
+  grid-template-columns: minmax(280px, 740px);
+}
+
+.account-card {
+  background: linear-gradient(165deg, #ffffff 5%, #f7fbff 65%, #edf7f7 100%);
+  border: 1px solid #d6e4f2;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 14px 30px rgba(16, 32, 51, 0.08);
+  display: grid;
+  gap: 12px;
+}
+
+.account-card h2 {
+  font-size: 22px;
+}
+
+.account-details {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.account-details > div {
+  display: grid;
+  gap: 2px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e8eef6;
+}
+
+.account-details > div:last-child {
+  border-bottom: 0;
+}
+
+.account-details dt {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #68819b;
+  font-weight: 700;
+}
+
+.account-details dd {
+  margin: 0;
+  color: #0e273d;
+  font-weight: 600;
+}
+
+.stack-form {
+  display: grid;
+  gap: 8px;
+}
+
+.toggle-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.toggle-field input {
+  width: auto;
+}
+
+@media (max-width: 900px) {
+  .account-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .account-grid.single {
+    grid-template-columns: 1fr;
+  }
+}

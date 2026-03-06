@@ -1,0 +1,45 @@
+project:
+  name: "Tenantra"
+  type: "Multi-tenant SaaS platform"
+  stack:
+    frontend: "React (Vite)"
+    backend: "Node.js + Express"
+    database: "PostgreSQL"
+
+access:
+  frontend_url: "http://localhost:3000"
+  backend_url: "http://localhost:5000"
+  health_url: "http://localhost:5000/api/health"
+
+credentials:
+  super_admin:
+    email: "superadmin@system.com"
+    password: "Admin@123"
+    role: "super_admin"
+  tenant_admin:
+    tenant_subdomain: "demo"
+    email: "admin@demo.com"
+    password: "Demo@123"
+    role: "tenant_admin"
+  user:
+    tenant_subdomain: "demo"
+    email: "user1@demo.com"
+    password: "User@123"
+    role: "user"
+
+features:
+  - "Strict tenant data isolation"
+  - "RBAC with role-safe UI and API enforcement"
+  - "Projects and tasks with priority/status workflows"
+  - "User profile + password management"
+  - "Persistent user preferences"
+  - "Long-form interactive home page with image carousel, ratings, FAQ, and animated sections"
+  - "Mobile sidebar navigation for headers (home + app)"
+  - "Interactive frontend add-ons: toast notifications, confetti, and loaders"
+  - "Responsive UI across mobile, tablet, and desktop"
+
+documentation:
+  readme: "README.md"
+  api: "docs/API.md"
+  full_markdown: "docs/FULL_DOCUMENTATION.md"
+  full_pdf: "docs/FULL_DOCUMENTATION.pdf"

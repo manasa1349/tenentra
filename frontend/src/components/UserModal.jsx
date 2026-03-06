@@ -1,98 +1,113 @@
-import { useState } from "react";
-import api from "../api/api";
+import { useState } from 'react';
+import api from '../api/api';
+import '../styles/modal.css';
 
-export default function UserModal({ user, onClose, onSaved }) {
+export default function UserModal({ user, tenantId, onClose, onSaved }) {
   const isEdit = !!user;
 
-  const [email, setEmail] = useState(user?.email || "");
-  const [fullName, setFullName] = useState(user?.fullName || "");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState(user?.role || "user");
+  const [email, setEmail] = useState(user?.email || '');
+  const [fullName, setFullName] = useState(user?.fullName || '');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState(user?.role || 'user');
   const [isActive, setIsActive] = useState(user?.isActive ?? true);
-  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const submit = async (e) => {
     e.preventDefault();
+    setError('');
 
-    if (!fullName || !email || (!isEdit && !password)) {
-      setError("All required fields must be filled");
+    if (!fullName.trim() || !email.trim() || (!isEdit && !password)) {
+      setError('Please fill all required fields');
       return;
     }
 
-    if (isEdit) {
-      await api.put(`/users/${user.id}`, {
-        fullName,
-        role,
-        isActive,
-      });
-    } else {
-      const me = await api.get("/auth/me");
-      const tenantId = me.data.data.tenant.id;
-
-      await api.post(`/tenants/${tenantId}/users`, {
-        email,
-        fullName,
-        password,
-        role,
-      });
-      
-      onSaved();
-      onClose();
+    if (!isEdit && password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
     }
 
-    // onSaved();
-    // onClose();
+    setSaving(true);
+
+    try {
+      if (isEdit) {
+        await api.put(`/users/${user.id}`, {
+          fullName: fullName.trim(),
+          role,
+          isActive,
+        });
+      } else {
+        await api.post(`/tenants/${tenantId}/users`, {
+          email: email.trim().toLowerCase(),
+          fullName: fullName.trim(),
+          password,
+          role,
+        });
+      }
+
+      await onSaved();
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to save user');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <div className="modal-backdrop">
-      <div className="modal">
-        <h2>{isEdit ? "Edit User" : "Add User"}</h2>
+    <div className='modal-backdrop'>
+      <div className='modal'>
+        <h2>{isEdit ? 'Edit User' : 'Add User'}</h2>
 
-        {error && <p className="error">{error}</p>}
+        {error && <p className='error'>{error}</p>}
 
         <form onSubmit={submit}>
-          <label>Full Name</label>
-          <input value={fullName} onChange={e => setFullName(e.target.value)} />
+          <label htmlFor='fullName'>Full Name</label>
+          <input id='fullName' value={fullName} onChange={(e) => setFullName(e.target.value)} />
 
-          <label>Email</label>
+          <label htmlFor='email'>Email</label>
           <input
+            id='email'
+            type='email'
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             disabled={isEdit}
           />
 
           {!isEdit && (
             <>
-              <label>Password</label>
+              <label htmlFor='password'>Password</label>
               <input
-                type="password"
+                id='password'
+                type='password'
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </>
           )}
 
-          <label>Role</label>
-          <select value={role} onChange={e => setRole(e.target.value)}>
-            <option value="user">User</option>
-            <option value="tenant_admin">Tenant Admin</option>
+          <label htmlFor='role'>Role</label>
+          <select id='role' value={role} onChange={(e) => setRole(e.target.value)}>
+            <option value='user'>User</option>
+            <option value='tenant_admin'>Tenant Admin</option>
           </select>
 
           {isEdit && (
-            <label className="checkbox">
+            <label className='checkbox'>
               <input
-                type="checkbox"
+                type='checkbox'
                 checked={isActive}
-                onChange={e => setIsActive(e.target.checked)}
+                onChange={(e) => setIsActive(e.target.checked)}
               />
               Active
             </label>
           )}
 
-          <div className="modal-actions">
-            <button type="button" onClick={onClose}>Cancel</button>
-            <button>Save</button>
+          <div className='modal-actions'>
+            <button type='button' onClick={onClose}>
+              Cancel
+            </button>
+            <button disabled={saving}>{saving ? 'Saving...' : 'Save User'}</button>
           </div>
         </form>
       </div>
