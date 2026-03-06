@@ -113,8 +113,8 @@ The system follows a **three-tier architecture**:
 ### Clone Repository
 
 ```bash
-git clone https://github.com/manasa1349/multi-tenant-saas.git
-cd multi-tenant-saas
+git clone https://github.com/manasa1349/tenentra.git
+cd tenantra
 ```
 
 ---
