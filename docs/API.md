@@ -1,398 +1,165 @@
-# API Documentation
-
-Multi-Tenant SaaS Project Management Platform
-
----
+﻿# API Documentation
 
 ## Base URL
 
-```
-http://localhost:5000/api
-```
+`http://localhost:5000/api`
 
-All endpoints return responses in the following standard format:
-
-### Success Response
+All APIs return:
 
 ```json
 {
   "success": true,
+  "message": "...",
   "data": {}
 }
 ```
 
-### Error Response
+For protected endpoints, send:
+
+`Authorization: Bearer <token>`
+
+---
+
+## Authentication APIs
+
+### POST `/auth/register-tenant`
+Register a tenant and its first tenant admin.
+
+### POST `/auth/login`
+Login as super admin or tenant user.
+
+### GET `/auth/me`
+Get current user profile and tenant metadata.
+
+### PUT `/auth/me`
+Update current user profile.
+
+Supported payload fields:
 
 ```json
 {
-  "success": false,
-  "message": "Error description"
+  "fullName": "New Name",
+  "currentPassword": "OldPass@123",
+  "newPassword": "NewPass@123"
 }
 ```
 
----
+Notes:
+- `fullName` update is optional.
+- Password change requires both `currentPassword` and `newPassword`.
 
-## Authentication
+### GET `/auth/preferences`
+Get current user preferences.
 
-Authentication is handled using **JWT (JSON Web Tokens)**.
-
-* JWT must be included in the `Authorization` header:
-
-```
-Authorization: Bearer <token>
-```
-
-* JWT payload includes:
+### PUT `/auth/preferences`
+Update current user preferences.
 
 ```json
 {
-  "userId": "uuid",
-  "tenantId": "uuid | null",
-  "role": "super_admin | tenant_admin | user"
+  "emailNotifications": true,
+  "taskDueReminders": true,
+  "weeklySummary": false,
+  "defaultTaskView": "board"
 }
 ```
 
----
-
-## AUTHENTICATION APIs
-
----
-
-### 1. Register Tenant
-
-**POST** `/auth/register-tenant`
-
-Registers a new tenant and creates a tenant admin.
-
-**Auth Required:** No
-
-**Request Body**
-
-```json
-{
-  "tenantName": "Demo Company",
-  "subdomain": "demo",
-  "adminFullName": "Demo Admin",
-  "adminEmail": "admin@demo.com",
-  "adminPassword": "Demo@123"
-}
-```
-
-**Response**
-
-```json
-{
-  "success": true,
-  "message": "Tenant registered successfully"
-}
-```
+### POST `/auth/logout`
+Logout current user.
 
 ---
 
-### 2. Login
+## Tenant APIs
 
-**POST** `/auth/login`
+### GET `/tenants`
+Super admin only.
 
-Authenticates a user.
+### GET `/tenants/:tenantId`
+Super admin only.
 
-**Auth Required:** No
-
-**Request Body**
-
-```json
-{
-  "email": "admin@demo.com",
-  "password": "Demo@123",
-  "tenantSubdomain": "demo"
-}
-```
-
-**Response**
-
-```json
-{
-  "success": true,
-  "data": {
-    "user": {
-      "id": "uuid",
-      "email": "admin@demo.com",
-      "role": "tenant_admin",
-      "tenantId": "uuid"
-    },
-    "token": "jwt_token",
-    "expiresIn": 86400
-  }
-}
-```
+### PUT `/tenants/:tenantId`
+Super admin only.
 
 ---
 
-### 3. Get Current User
+## User Management APIs
 
-**GET** `/auth/me`
+### POST `/tenants/:tenantId/users`
+Tenant admin only.
 
-Returns authenticated user details.
+### GET `/tenants/:tenantId/users`
+Tenant admin only.
 
-**Auth Required:** Yes
+### PUT `/users/:userId`
+Tenant admin can update tenant users.
+User can update their own `fullName` only.
 
-**Response**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "uuid",
-    "email": "admin@demo.com",
-    "fullName": "Demo Admin",
-    "role": "tenant_admin",
-    "tenantId": "uuid"
-  }
-}
-```
+### DELETE `/users/:userId`
+Tenant admin only.
 
 ---
 
-## TENANT APIs (SUPER ADMIN)
+## Project APIs
+
+### GET `/projects`
+Authenticated users.
+
+### GET `/projects/:projectId`
+Authenticated users with tenant access.
+
+### POST `/projects`
+Tenant admin and super admin only.
+
+### PUT `/projects/:projectId`
+Tenant admin and super admin only.
+
+### DELETE `/projects/:projectId`
+Tenant admin and super admin only.
 
 ---
 
-### 4. List Tenants
+## Task APIs
 
-**GET** `/tenants`
+### GET `/projects/:projectId/tasks`
+Authenticated users.
 
-**Auth Required:** Yes (super_admin)
+Behavior:
+- Tenant admin/super admin: can list tenant/project tasks.
+- User: automatically limited to tasks assigned to self.
 
-**Response**
+### POST `/projects/:projectId/tasks`
+Tenant admin and super admin only.
 
-```json
-{
-  "success": true,
-  "data": {
-    "tenants": []
-  }
-}
-```
+### PATCH `/tasks/:taskId/status`
+- Tenant admin/super admin: any task in tenant scope.
+- User: only tasks assigned to self.
 
----
+### PUT `/tasks/:taskId`
+- Tenant admin/super admin: full task update.
+- User: status-only update on tasks assigned to self.
 
-### 5. Get Tenant Details
-
-**GET** `/tenants/:tenantId`
-
-**Auth Required:** Yes (super_admin)
+### DELETE `/tasks/:taskId`
+Tenant admin and super admin only.
 
 ---
 
-### 6. Update Tenant
+## Health
 
-**PUT** `/tenants/:tenantId`
-
-**Auth Required:** Yes (super_admin)
-
----
-
-## USER MANAGEMENT APIs
+### GET `/health`
+Returns API + database readiness.
 
 ---
 
-### 7. List Users by Tenant
+## Role Matrix
 
-**GET** `/tenants/:tenantId/users`
-
-**Auth Required:** Yes (tenant_admin)
-
-**Response**
-
-```json
-{
-  "success": true,
-  "data": {
-    "users": []
-  }
-}
-```
+| Role         | Tenants | Users | Projects | Tasks |
+|--------------|---------|-------|----------|-------|
+| super_admin  | Full    | Cross-tenant visibility, no tenant user CRUD via user endpoint | Full | Full |
+| tenant_admin | No      | Full in own tenant | Full in own tenant | Full in own tenant |
+| user         | No      | Self profile only | Read-only | Assigned-task status updates only |
 
 ---
 
-### 8. Create User
+For product/architecture details, see:
 
-**POST** `/tenants/:tenantId/users`
-
-**Auth Required:** Yes (tenant_admin)
-
-**Request Body**
-
-```json
-{
-  "email": "user1@demo.com",
-  "fullName": "Demo User",
-  "password": "User@123",
-  "role": "user"
-}
-```
-
----
-
-### 9. Update User
-
-**PUT** `/users/:userId`
-
-**Auth Required:** Yes (tenant_admin)
-
----
-
-### 10. Delete User
-
-**DELETE** `/users/:userId`
-
-**Auth Required:** Yes (tenant_admin)
-
----
-
-## PROJECT MANAGEMENT APIs
-
----
-
-### 11. List Projects
-
-**GET** `/projects`
-
-**Auth Required:** Yes
-
----
-
-### 12. Create Project
-
-**POST** `/projects`
-
-**Auth Required:** Yes (tenant_admin)
-
-**Request Body**
-
-```json
-{
-  "name": "Project Alpha",
-  "description": "Demo project",
-  "status": "active"
-}
-```
-
----
-
-### 13. Get Project Details
-
-**GET** `/projects/:projectId`
-
-**Auth Required:** Yes
-
----
-
-### 14. Update Project
-
-**PUT** `/projects/:projectId`
-
-**Auth Required:** Yes (tenant_admin)
-
----
-
-### 15. Delete Project
-
-**DELETE** `/projects/:projectId`
-
-**Auth Required:** Yes (tenant_admin)
-
----
-
-## TASK MANAGEMENT APIs
-
----
-
-### 16. List Tasks by Project
-
-**GET** `/projects/:projectId/tasks`
-
-**Auth Required:** Yes
-
----
-
-### 17. Create Task
-
-**POST** `/projects/:projectId/tasks`
-
-**Auth Required:** Yes
-
-**Request Body**
-
-```json
-{
-  "title": "Design Homepage",
-  "description": "UI design",
-  "priority": "high",
-  "assignedTo": "userId"
-}
-```
-
----
-
-### 18. Update Task
-
-**PUT** `/tasks/:taskId`
-
-**Auth Required:** Yes
-
----
-
-### 19. Update Task Status
-
-**PATCH** `/tasks/:taskId/status`
-
-**Auth Required:** Yes
-
-**Request Body**
-
-```json
-{
-  "status": "completed"
-}
-```
-
----
-
-### 20. Delete Task
-
-**DELETE** `/tasks/:taskId`
-
-**Auth Required:** Yes
-
----
-
-## HEALTH CHECK API
-
----
-
-### 21. Health Check
-
-**GET** `/health`
-
-**Auth Required:** No
-
-**Response**
-
-```json
-{
-  "status": "ok",
-  "database": "connected"
-}
-```
-
----
-
-## Authorization Rules Summary
-
-| Role         | Permissions                   |
-| ------------ | ----------------------------- |
-| super_admin  | Manage all tenants            |
-| tenant_admin | Manage users, projects, tasks |
-| user         | View assigned tasks           |
-
----
+- `docs/FULL_DOCUMENTATION.md`
+- `docs/FULL_DOCUMENTATION.pdf`

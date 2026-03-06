@@ -1,156 +1,119 @@
 # Product Requirements Document (PRD)
 
-## 1. Overview
+## 1. Product Vision
 
-This Product Requirements Document (PRD) defines the functional and non-functional requirements for a production-ready, multi-tenant SaaS platform focused on project and task management. The system is designed to support multiple independent organizations (tenants) with strict data isolation, role-based access control, and subscription-based usage limits.
+Tenantra is a multi-tenant SaaS platform that helps organizations manage projects, tasks, and team ownership in a secure, tenant-isolated environment.
 
-The goal of the platform is to enable organizations to manage users, projects, and tasks efficiently while ensuring security, scalability, and ease of use.
-
----
-
-## 2. User Personas
-
-### 2.1 Super Admin
-
-**Role Description:**
-The Super Admin is a system-level administrator responsible for managing the overall SaaS platform across all tenants. This role operates outside tenant boundaries and has visibility into all organizations.
-
-**Key Responsibilities:**
-
-* Manage and monitor all registered tenants
-* Oversee system health and audit logs
-* Handle tenant suspension or reactivation
-* Ensure platform-wide security and compliance
-
-**Main Goals:**
-
-* Maintain platform stability and uptime
-* Prevent security breaches and data leaks
-* Support tenant onboarding and lifecycle management
-
-**Pain Points:**
-
-* Detecting cross-tenant security issues
-* Monitoring activity across multiple tenants
-* Ensuring consistent enforcement of platform policies
+The product goal is to provide a professional operations workflow with strict role boundaries, responsive UI, and practical day-to-day execution visibility.
 
 ---
 
-### 2.2 Tenant Admin
+## 2. Personas and Responsibilities
 
-**Role Description:**
-The Tenant Admin is the primary administrator for an individual organization (tenant). This role has full control over users, projects, and tasks within their tenant scope.
+## 2.1 Super Admin
 
-**Key Responsibilities:**
+Responsibilities:
 
-* Manage users within the organization
-* Create and manage projects
-* Assign tasks and monitor progress
-* Enforce subscription plan limits
+- View and manage all tenants.
+- Update tenant status, subscription, and limits.
+- View cross-tenant portfolio data.
 
-**Main Goals:**
+Notable constraints:
 
-* Organize team work efficiently
-* Stay within subscription constraints
-* Maintain visibility into project progress
+- Does not manage tenant users through tenant-admin-only flows.
 
-**Pain Points:**
+## 2.2 Tenant Admin
 
-* Managing user access and permissions
-* Tracking multiple projects and tasks
-* Avoiding subscription limit violations
+Responsibilities:
 
----
+- Manage users within own tenant.
+- Create and manage projects.
+- Create, assign, update, and delete tasks within tenant scope.
+- Update tenant name for own organization.
 
-### 2.3 End User
+## 2.3 User
 
-**Role Description:**
-The End User is a regular team member within a tenant organization. This role focuses on task execution and collaboration.
+Responsibilities:
 
-**Key Responsibilities:**
+- View tenant projects.
+- View assigned tasks.
+- Update status for tasks assigned to self.
+- Manage own profile and preferences.
 
-* View assigned projects and tasks
-* Update task status and progress
-* Collaborate with team members
+Constraints:
 
-**Main Goals:**
-
-* Clearly understand assigned responsibilities
-* Track task deadlines and priorities
-* Complete work efficiently
-
-**Pain Points:**
-
-* Lack of clarity on task priorities
-* Limited visibility into overall project status
-* Difficulty accessing relevant information quickly
+- Cannot create/edit/delete projects.
+- Cannot create/delete tasks.
+- Cannot edit other users.
 
 ---
 
 ## 3. Functional Requirements
 
-### 3.1 Authentication & Authorization
+## 3.1 Authentication and Account
 
-* **FR-001:** The system shall allow users to register and log in using email and password.
-* **FR-002:** The system shall authenticate users using JWT-based authentication with a 24-hour token expiry.
-* **FR-003:** The system shall enforce role-based access control for all protected API endpoints.
-* **FR-004:** The system shall restrict super admin access to system-level operations only.
+- FR-001: Tenant registration with initial tenant admin account.
+- FR-002: Email/password login using JWT authentication.
+- FR-003: Current user profile read/update endpoint.
+- FR-004: Password change requires current password verification.
+- FR-005: Preferences API for notification and default task view settings.
 
-### 3.2 Tenant Management
+## 3.2 Tenant Management
 
-* **FR-005:** The system shall allow new tenants to register with a unique organization name and subdomain.
-* **FR-006:** The system shall assign a default subscription plan to new tenants.
-* **FR-007:** The system shall allow super admins to view and manage all tenants.
-* **FR-008:** The system shall isolate all tenant data using tenant-specific identifiers.
+- FR-006: Super admin can list and inspect all tenants.
+- FR-007: Super admin can update tenant governance fields (status, plan, limits).
+- FR-008: Tenant admin can update own tenant name only.
+- FR-009: All tenant-scoped access is blocked across tenant boundaries.
 
-### 3.3 User Management
+## 3.3 User Management
 
-* **FR-009:** The system shall allow tenant admins to create, update, and deactivate users within their tenant.
-* **FR-010:** The system shall enforce unique email addresses per tenant.
-* **FR-011:** The system shall restrict user management operations based on role permissions.
+- FR-010: Tenant admin can add users in own tenant.
+- FR-011: Tenant admin can update/delete tenant users (with self-delete guard).
+- FR-012: User listing supports pagination and filtering.
 
-### 3.4 Project Management
+## 3.4 Projects
 
-* **FR-012:** The system shall allow tenant admins to create, update, and archive projects.
-* **FR-013:** The system shall enforce subscription-based limits on the number of projects per tenant.
-* **FR-014:** The system shall allow users to view projects associated with their tenant.
+- FR-013: Tenant-scoped project listing and detail retrieval.
+- FR-014: Tenant admin can create projects within plan limits.
+- FR-015: Tenant admin and super admin can update/delete accessible projects.
 
-### 3.5 Task Management
+## 3.5 Tasks
 
-* **FR-015:** The system shall allow users to create, update, and assign tasks within projects.
-* **FR-016:** The system shall allow users to update task status and priority.
-* **FR-017:** The system shall associate all tasks with a project and tenant.
+- FR-016: Task CRUD with tenant isolation and assignee validation.
+- FR-017: Task listing supports filters (status, assignee, priority, search).
+- FR-018: Regular users can update status only for assigned tasks.
 
-### 3.6 Audit & Monitoring
+## 3.6 UX and Interface
 
-* **FR-018:** The system shall log all critical actions in an audit log.
-* **FR-019:** The system shall provide a health check endpoint to report system status.
+- FR-019: Public home page with long-form product presentation and dynamic sections.
+- FR-020: Responsive layout for mobile/tablet/desktop.
+- FR-021: Role-aware navigation and protected routes.
+- FR-022: Interactive feedback with toasts/loaders (and confetti on success flows).
+
+## 3.7 Observability and Safety
+
+- FR-023: Health endpoint reports DB + readiness checks.
+- FR-024: Critical actions are written to audit logs.
 
 ---
 
 ## 4. Non-Functional Requirements
 
-### 4.1 Performance
-
-* **NFR-001:** The system shall respond to 90% of API requests within 200 milliseconds under normal load.
-
-### 4.2 Security
-
-* **NFR-002:** The system shall hash all user passwords using a secure hashing algorithm.
-* **NFR-003:** The system shall ensure complete data isolation between tenants.
-
-### 4.3 Scalability
-
-* **NFR-004:** The system shall support a minimum of 100 concurrent users without performance degradation.
-
-### 4.4 Availability
-
-* **NFR-005:** The system shall target an uptime of 99% excluding scheduled maintenance.
-
-### 4.5 Usability
-
-* **NFR-006:** The system shall provide a responsive user interface accessible on both desktop and mobile devices.
+- NFR-001: Strong tenant isolation for all protected resources.
+- NFR-002: Secure password hashing and token validation.
+- NFR-003: Responsive and accessible baseline UI across major screen sizes.
+- NFR-004: One-command local startup via Docker Compose.
+- NFR-005: Maintainable modular structure for backend routes/controllers and frontend pages/components.
 
 ---
 
-**This PRD defines the functional scope and quality expectations for the multi-tenant SaaS platform and serves as a reference for system design and implementation.**
+## 5. Success Criteria
+
+- Users from one tenant cannot access another tenant data.
+- Role restrictions behave correctly for super admin, tenant admin, and user.
+- Core flows (register, login, projects, tasks, profile, settings) work without static placeholders.
+- Home, auth, and app pages render correctly on mobile, tablet, and desktop.
+
+---
+
+This PRD reflects the currently implemented product behavior.

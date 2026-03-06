@@ -2,185 +2,207 @@
 
 ## 1. Overview
 
-This document provides the technical implementation details for the multi-tenant SaaS Project & Task Management platform. It defines the project structure, development setup, environment configuration, and execution workflow. The purpose of this document is to ensure consistent development, deployment, and evaluation across environments.
+This document describes the current technical implementation of Tenantra, a multi-tenant SaaS project and task management platform. It covers structure, configuration, runtime behavior, and deployment workflow.
 
 ---
 
-## 2. Project Structure
+## 2. Repository Structure
 
-### 2.1 Root Directory Structure
-
-```
+```text
 multi-tenant-saas/
-│
-├── backend/
-├── frontend/
-├── database/
-├── docs/
-├── docker-compose.yml
-├── submission.json
-├── .env
-└── README.md
+|- backend/
+|- frontend/
+|- database/
+|- docs/
+|- docker-compose.yml
+|- submission.json
+|- submission.yml
+|- README.md
 ```
-
-Each directory serves a clearly defined purpose and separates concerns between application layers.
 
 ---
 
-## 3. Backend Project Structure
+## 3. Backend Specification
 
-**Location:** `backend/`
+### 3.1 Stack
 
-```
+- Node.js
+- Express
+- PostgreSQL (`pg`)
+- JWT (`jsonwebtoken`)
+- Password hashing (`bcrypt`)
+
+### 3.2 Backend Layout
+
+```text
 backend/
-├── src/
-│   ├── controllers/     # Request handling logic
-│   ├── routes/          # API route definitions
-│   ├── middleware/      # Auth, RBAC, tenant isolation
-│   ├── services/        # Business logic layer
-│   ├── models/          # Database query abstractions
-│   ├── utils/           # Helper utilities (JWT, hashing)
-│   ├── config/          # Environment & DB configuration
-│   └── app.js           # Express app initialization
-│
-├── migrations/          # SQL migration files
-├── seeds/               # Seed data SQL files
-├── Dockerfile           # Backend Docker configuration
-├── package.json
-└── package-lock.json
+|- src/
+|  |- config/        # env + db pool
+|  |- controllers/   # request handlers
+|  |- middleware/    # auth, RBAC, tenant access, error handling
+|  |- routes/        # endpoint registration
+|  |- services/      # audit log helper
+|  |- utils/         # response helpers
+|  |- validators/    # auth/preferences validators
+|  |- app.js
+|  `- server.js
+|- Dockerfile
+|- entrypoint.sh
+|- package.json
+`- .env.example
 ```
 
-### Backend Responsibilities
+### 3.3 Backend Responsibilities
 
-* Enforce tenant isolation using `tenant_id`
-* Implement JWT authentication and RBAC
-* Enforce subscription plan limits
-* Provide RESTful APIs with consistent responses
-* Perform audit logging for critical actions
+- Authenticate users and issue JWT tokens.
+- Enforce tenant isolation using `tenant_id` and route-level tenant guards.
+- Enforce role-based permissions for tenant, project, task, and user operations.
+- Provide paginated listing APIs for tenants, users, projects, and tasks.
+- Track critical actions in `audit_logs`.
+- Expose health endpoint with DB and seed-readiness checks.
 
 ---
 
-## 4. Frontend Project Structure
+## 4. Frontend Specification
 
-**Location:** `frontend/`
+### 4.1 Stack
 
-```
+- React (Vite)
+- React Router
+- Axios
+- React Hot Toast
+- Canvas Confetti
+- React Spinners
+- Custom CSS modules/files
+
+### 4.2 Frontend Layout
+
+```text
 frontend/
-├── src/
-│   ├── components/      # Reusable UI components
-│   ├── pages/           # Application pages
-│   ├── services/        # API service layer
-│   ├── context/         # Auth and user context
-│   ├── routes/          # Protected route definitions
-│   ├── utils/           # Utility helpers
-│   └── App.js
-│
-├── public/
-├── Dockerfile           # Frontend Docker configuration
-├── package.json
-└── package-lock.json
+|- src/
+|  |- api/           # Axios client + API helpers
+|  |- auth/          # auth context + protected routes + auth pages
+|  |- components/    # reusable UI components
+|  |- pages/         # dashboard, home, tasks, projects, users, profile, settings
+|  |- styles/        # global and page-level styles
+|  |- App.jsx
+|  `- main.jsx
+|- public/
+|- Dockerfile
+|- vite.config.js
+`- package.json
 ```
 
-### Frontend Responsibilities
+### 4.3 Frontend Responsibilities
 
-* Handle authentication flow
-* Manage protected routes
-* Render role-based UI components
-* Consume backend APIs securely
-* Display user-friendly error messages
+- Public home experience at `/`.
+- Authentication flows (`/login`, `/register`).
+- Role-aware protected application routes.
+- Responsive UI for mobile, tablet, and desktop.
+- Interactive feedback (toast, loader, confetti where applicable).
 
 ---
 
-## 5. Database Structure
+## 5. Database Specification
 
-**Location:** `database/`
+### 5.1 Database Model
 
+- PostgreSQL 15
+- Shared database, shared schema model
+- Tenant isolation through `tenant_id`
+
+### 5.2 Initialization
+
+Schema and seed scripts run automatically from:
+
+```text
+database/init/
+|- 001_create_enums.sql
+|- 002_create_tenants.sql
+|- 003_create_users.sql
+|- 004_create_projects.sql
+|- 005_create_tasks.sql
+|- 006_create_audit_logs.sql
+|- 007_create_user_preferences.sql
+`- seed_data.sql
 ```
-database/
-├── migrations/          # Ordered SQL migrations
-└── seeds/               # Initial seed data
-```
 
-### Database Design Notes
+### 5.3 Core Tables
 
-* PostgreSQL is used as the relational database
-* All tenant-owned tables include a `tenant_id`
-* Migrations run automatically on container startup
-* Seed data is inserted automatically after migrations
+- `tenants`
+- `users`
+- `projects`
+- `tasks`
+- `audit_logs`
+- `user_preferences`
 
 ---
 
-## 6. Environment Configuration
+## 6. Environment and Runtime Configuration
 
-All environment variables are defined in the `.env` file and are committed to the repository using development-safe values.
+### 6.1 Docker Compose Runtime
 
-### Required Environment Variables
+`docker-compose.yml` starts:
 
-```
-# Database
-POSTGRES_DB=saas_db
-POSTGRES_USER=saas_user
-POSTGRES_PASSWORD=saas_password
-DB_HOST=database
-DB_PORT=5432
+- `database` (PostgreSQL, port `5432`)
+- `backend` (Express API, port `5000`)
+- `frontend` (Vite app, port `3000`)
 
-# Backend
-BACKEND_PORT=5000
-JWT_SECRET=dev_jwt_secret
-JWT_EXPIRES_IN=24h
+### 6.2 Key Environment Variables
 
-# Frontend
-REACT_APP_API_BASE_URL=http://backend:5000
-```
+Backend:
+
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
+- `JWT_SECRET`, `JWT_EXPIRES_IN`
+- `PORT`, `NODE_ENV`
+- `FRONTEND_URL` (comma-separated allowed CORS origins)
+
+Frontend:
+
+- `VITE_API_URL`
+- `VITE_API_PROXY_TARGET`
 
 ---
 
-## 7. Development Setup Guide
+## 7. API Surface Summary
 
-### 7.1 Prerequisites
+Base URL: `http://localhost:5000/api`
 
-* Node.js (v18 or later)
-* Docker & Docker Compose
-* Git
+- Auth: `/auth/*`
+- Tenant management: `/tenants/*`
+- Projects: `/projects/*`
+- Tasks: `/projects/:projectId/tasks`, `/tasks/:taskId*`
+- User updates/deletion: `/users/:userId`
+- Health: `/health`
 
-### 7.2 Installation Steps
+Detailed endpoint behavior is documented in `docs/API.md`.
 
-1. Clone the repository
-2. Navigate to the project root directory
-3. Ensure Docker is running
-4. Start all services using:
+---
 
-```
+## 8. Local Run Procedure
+
+1. Ensure Docker Desktop is running.
+2. Run:
+
+```bash
 docker-compose up -d
 ```
 
-This command starts the database, backend, and frontend services automatically.
+3. Access:
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:5000`
+- Health: `http://localhost:5000/api/health`
 
 ---
 
-## 8. Running the Application
+## 9. Validation Checklist
 
-* Frontend: [http://localhost:3000](http://localhost:3000)
-* Backend API: [http://localhost:5000](http://localhost:5000)
-* Health Check: [http://localhost:5000/api/health](http://localhost:5000/api/health)
-
----
-
-## 9. Testing Guidelines
-
-* API testing can be performed using Postman or Swagger
-* Authentication token must be included for protected routes
-* Cross-tenant access attempts must be rejected
+- Containers are healthy (`database`, `backend`, `frontend`).
+- `/api/health` returns `status: ok`.
+- Seed credentials can log in for all three roles.
+- Tenant boundaries hold for project/task operations.
+- Mobile/tablet/desktop layouts remain usable.
 
 ---
 
-## 10. Notes for Evaluation
-
-* No manual database commands are required
-* Database migrations and seed data load automatically
-* All services communicate using Docker service names
-* Fixed ports are used as per evaluation requirements
-
----
-
-**This technical specification ensures a consistent and evaluator-compliant implementation of the multi-tenant SaaS platform.**
+This technical specification reflects the current implementation state of Tenantra.

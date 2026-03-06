@@ -1,155 +1,166 @@
-# System Architecture Document
+# System Architecture
 
 ## 1. Overview
 
-This document describes the high-level system architecture, database design, and API architecture for the multi-tenant SaaS Project & Task Management platform. The architecture is designed to ensure strict tenant isolation, scalability, security, and maintainability while meeting all mandatory evaluation constraints.
+Tenantra is a three-tier multi-tenant SaaS system with strict tenant isolation, role-aware authorization, and a shared PostgreSQL schema. The system is containerized with Docker Compose for repeatable local and evaluation runs.
 
 ---
 
-## 2. High-Level System Architecture
+## 2. High-Level Architecture
 
-### 2.1 Architecture Description
+## 2.1 Components
 
-The system follows a **three-tier architecture** consisting of a client layer, application layer, and data layer. All components are containerized using Docker and orchestrated via Docker Compose.
+- Browser client
+- Frontend application (React + Vite)
+- Backend API (Node.js + Express)
+- PostgreSQL database
 
-**Components:**
+## 2.2 Runtime Topology
 
-* **Client (Browser):** Users access the system via a web browser.
-* **Frontend Application (React):** Handles UI rendering, authentication flow, and API consumption.
-* **Backend API (Node.js + Express):** Implements business logic, authentication, authorization, tenant isolation, and subscription enforcement.
-* **Database (PostgreSQL):** Stores all persistent data with tenant-based isolation.
+- Browser -> Frontend: `http://localhost:3000`
+- Frontend -> Backend API: `http://backend:5000` (inside Docker network)
+- Backend -> Database: `database:5432`
 
-### 2.2 Authentication Flow
+## 2.3 Processing Flow
 
-1. User accesses tenant-specific subdomain and logs in.
-2. Frontend sends credentials to backend authentication API.
-3. Backend validates credentials and issues a JWT with role and tenant context.
-4. Frontend stores JWT securely and attaches it to all subsequent API requests.
-5. Backend middleware validates JWT and enforces RBAC and tenant isolation.
-
-### 2.3 System Architecture Diagram
-
-The following diagram visually represents the system architecture:
-
-**File Location:** `docs/images/system-architecture.png`
-
-**Diagram Description:**
-
-* Browser communicates with the frontend container on port 3000.
-* Frontend communicates with backend API via internal Docker network using `http://backend:5000`.
-* Backend communicates with PostgreSQL database via `database:5432`.
-* Authentication and authorization are enforced at the backend API layer.
+1. User authenticates through `/api/auth/login`.
+2. Backend issues JWT with `userId`, `tenantId`, and `role`.
+3. Frontend attaches JWT to protected API requests.
+4. Backend middleware validates token, role, and tenant access before controller logic.
+5. Controllers execute tenant-scoped SQL and return normalized API responses.
 
 ---
 
-## 3. Database Architecture
+## 3. Security and Isolation Model
 
-### 3.1 Database Design Principles
+## 3.1 Identity and Auth
 
-* **Shared Database, Shared Schema** multi-tenancy model
-* Tenant data isolation using `tenant_id` on all tenant-owned tables
-* Strong referential integrity using foreign keys
-* Cascading deletes to prevent orphan records
-* Indexed tenant_id columns for query performance
+- Stateless JWT authentication.
+- Password hashing with bcrypt.
+- CORS allowlist via `FRONTEND_URL`.
 
-### 3.2 Entity Relationship Diagram (ERD)
+## 3.2 Tenant Isolation
 
-**File Location:** `docs/images/database-erd.png`
+- Tenant-owned tables store `tenant_id`.
+- Query filters are tenant-scoped unless role is `super_admin`.
+- `requireTenantAccess` middleware blocks cross-tenant route access.
 
-**Core Entities:**
+## 3.3 Authorization Model
 
-* tenants
-* users
-* projects
-* tasks
-* audit_logs
+Roles:
 
-**ERD Highlights:**
+- `super_admin`
+- `tenant_admin`
+- `user`
 
-* All tenant-owned entities include a `tenant_id` foreign key
-* Super admin users have `tenant_id = NULL`
-* Composite unique constraint on `(tenant_id, email)` in users table
-* Indexes on tenant_id columns for performance optimization
+Examples:
 
----
-
-## 4. API Architecture
-
-### 4.1 API Design Principles
-
-* RESTful architecture
-* Consistent response format: `{ success, message, data }`
-* JWT-based authentication for protected endpoints
-* Role-Based Access Control (RBAC) enforced at middleware level
-* Tenant isolation enforced in every data access layer
-
-### 4.2 API Endpoint List
-
-#### Authentication APIs
-
-* **POST /api/auth/login** – Authenticate user and issue JWT (Public)
-* **POST /api/auth/register-tenant** – Register new tenant and tenant admin (Public)
-
-#### Tenant Management APIs
-
-* **GET /api/tenants** – List all tenants (Super Admin only)
-* **GET /api/tenants/:id** – Get tenant details (Super Admin only)
-* **PATCH /api/tenants/:id/status** – Update tenant status (Super Admin only)
-
-#### User Management APIs
-
-* **POST /api/users** – Create user (Tenant Admin)
-* **GET /api/users** – List users in tenant (Tenant Admin)
-* **GET /api/users/:id** – Get user details (Tenant Admin)
-* **PATCH /api/users/:id** – Update user (Tenant Admin)
-* **DELETE /api/users/:id** – Deactivate user (Tenant Admin)
-
-#### Project Management APIs
-
-* **POST /api/projects** – Create project (Tenant Admin)
-* **GET /api/projects** – List projects (Authenticated users)
-* **GET /api/projects/:id** – Get project details (Authenticated users)
-* **PATCH /api/projects/:id** – Update project (Tenant Admin)
-* **DELETE /api/projects/:id** – Archive project (Tenant Admin)
-
-#### Task Management APIs
-
-* **POST /api/tasks** – Create task (Tenant Admin, User)
-* **GET /api/tasks?project_id=** – List tasks by project (Authenticated users)
-* **PATCH /api/tasks/:id** – Update task (Assigned user or Tenant Admin)
-
-#### System APIs
-
-* **GET /api/health** – Health check endpoint (Public)
-
-> Total Endpoints: **19**
-
-### 4.3 Endpoint Security Matrix
-
-| Module  | Auth Required | Role Required       |
-| ------- | ------------- | ------------------- |
-| Auth    | No            | Public              |
-| Tenant  | Yes           | Super Admin         |
-| User    | Yes           | Tenant Admin        |
-| Project | Yes           | Tenant Admin / User |
-| Task    | Yes           | Tenant Admin / User |
-| Health  | No            | Public              |
+- `tenant_admin` manages tenant users and creates projects/tasks in own tenant.
+- `user` can update status only for tasks assigned to self.
+- `super_admin` has global visibility and tenant governance APIs.
 
 ---
 
-## 5. Cross-Cutting Concerns
+## 4. Data Architecture
 
-### 5.1 Tenant Isolation Enforcement
+## 4.1 Multi-Tenancy Pattern
 
-* tenant_id extracted from JWT and validated
-* All queries scoped by tenant_id
-* Super admin bypass limited to tenant management APIs
+- Shared database + shared schema.
+- Isolation by `tenant_id` and role-based controls.
 
-### 5.2 Audit Logging
+## 4.2 Core Entities
 
-* All critical operations recorded in audit_logs table
-* Logs include user_id, tenant_id, action, entity type, and timestamp
+- `tenants`
+- `users`
+- `projects`
+- `tasks`
+- `audit_logs`
+- `user_preferences`
+
+## 4.3 Integrity Controls
+
+- Foreign keys between tenants/users/projects/tasks.
+- Enum constraints for roles, statuses, and priorities.
+- Audit entries for critical write operations.
 
 ---
 
-**This architecture ensures secure, scalable, and evaluator-compliant implementation of the multi-tenant SaaS platform.**
+## 5. API Architecture
+
+Base path: `/api`
+
+## 5.1 Auth
+
+- `POST /auth/register-tenant`
+- `POST /auth/login`
+- `GET /auth/me`
+- `PUT /auth/me`
+- `GET /auth/preferences`
+- `PUT /auth/preferences`
+- `POST /auth/logout`
+
+## 5.2 Tenants
+
+- `GET /tenants` (super admin)
+- `GET /tenants/:tenantId` (same-tenant user or super admin)
+- `PUT /tenants/:tenantId` (tenant admin for name; super admin for full tenant controls)
+
+## 5.3 Tenant Users
+
+- `POST /tenants/:tenantId/users` (tenant admin)
+- `GET /tenants/:tenantId/users` (tenant-scoped access)
+- `PUT /users/:userId`
+- `DELETE /users/:userId`
+
+## 5.4 Projects
+
+- `GET /projects`
+- `GET /projects/:projectId`
+- `POST /projects` (requires tenant context; regular users forbidden)
+- `PUT /projects/:projectId` (tenant admin/super admin)
+- `DELETE /projects/:projectId` (tenant admin/super admin)
+
+## 5.5 Tasks
+
+- `GET /projects/:projectId/tasks`
+- `POST /projects/:projectId/tasks` (tenant admin/super admin)
+- `PATCH /tasks/:taskId/status`
+- `PUT /tasks/:taskId`
+- `DELETE /tasks/:taskId` (tenant admin/super admin)
+
+## 5.6 System
+
+- `GET /health`
+
+---
+
+## 6. Frontend Route Architecture
+
+Public:
+
+- `/`
+- `/login`
+- `/register`
+
+Protected:
+
+- `/dashboard`
+- `/projects`
+- `/projects/:projectId`
+- `/tasks`
+- `/profile`
+- `/settings`
+- `/users` (tenant admin)
+- `/tenants` (super admin)
+
+---
+
+## 7. Reliability and Operations
+
+- Health endpoint checks DB connectivity and required seed entities.
+- Compose service dependencies use container health checks.
+- One-command startup for evaluation: `docker-compose up -d`.
+
+---
+
+This architecture reflects the current implementation behavior and route design in the repository.

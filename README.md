@@ -1,4 +1,4 @@
-# Multi-Tenant SaaS Platform
+﻿# Tenantra (Multi-Tenant SaaS Platform)
 
 ## Project Description
 
@@ -28,6 +28,11 @@ The platform demonstrates **multi-tenancy, role-based access control (RBAC), sec
 - Project management with status tracking
 - Task management with assignment, priority, and status
 - Dashboard with real-time statistics
+- Public landing page with animated sections and testimonial carousel
+- Long-form home experience with product showcase, ratings, FAQ, and image carousel
+- Profile and settings pages with persistent user preferences
+- Responsive formal pastel UI across desktop, tablet, and mobile
+- Interactive UX add-ons: toast notifications, celebratory confetti, and loader components
 - PostgreSQL database with seeded demo data
 - Fully containerized using Docker and Docker Compose
 - Automated database initialization on startup
@@ -217,15 +222,19 @@ These credentials are preloaded and used for evaluation.
 
 ### Authentication
 
-- `/register` – Tenant registration
-- `/login` – Login page
+- `/` - Public landing page
+- `/register` - Tenant registration
+- `/login` - Login page
 
 ### Protected Routes
 
-- `/dashboard` – Dashboard overview
-- `/projects` – Projects list
-- `/projects/:projectId` – Project details and tasks
-- `/users` – User management (tenant_admin only)
+- `/dashboard` - Dashboard overview
+- `/projects` - Projects list
+- `/projects/:projectId` - Project details and tasks
+- `/tasks` - Role-aware task board/list
+- `/profile` - Personal profile (name/password)
+- `/settings` - User preferences
+- `/users` - User management (tenant_admin only)
 
 ---
 
@@ -239,10 +248,21 @@ docs/API.md
 
 The document includes:
 
-- All 19 API endpoints
+- All implemented API endpoints
 - Request and response formats
 - Authentication requirements
 - Example payloads
+
+---
+
+## Full Project Documentation
+
+Complete documentation (architecture, roles, route permissions, feature behavior, and setup) is available in:
+
+```
+docs/FULL_DOCUMENTATION.md
+docs/FULL_DOCUMENTATION.pdf
+```
 
 ---
 
@@ -291,24 +311,23 @@ A full demo video is provided covering:
 ---
 ## Limitations
 
-* UI design is functional but minimal
-* No email notifications implemented
-* No pagination for large datasets
-* Task assignment UI is basic
-* No real-time updates (WebSockets not used)
+* Password reset and email delivery workflows are not implemented yet
+* Real-time collaboration is not enabled (no WebSocket layer)
+* File attachments for tasks/projects are not available
+* Audit logs are captured in backend but no dedicated audit log UI exists
+* Automated test coverage (unit/integration/e2e) is limited
 
 ---
 
 ## Future Enhancements
 
-* Email notifications and password reset
-* Subscription-based feature limits
-* Audit logs UI
-* Advanced dashboard analytics
-* Real-time task updates using WebSockets
-* Pagination and search optimization
-* File attachments for tasks
-* Improved UI/UX with component libraries
+* Password reset flow with secure email verification
+* In-app and email notification center
+* Dedicated audit log dashboard with filters
+* Advanced analytics widgets for delivery forecasting
+* Real-time task updates with WebSockets
+* Task comments, mentions, and file attachments
+* Expanded automated test suite and CI checks
 
 ---
 
@@ -329,4 +348,5 @@ This project demonstrates a complete, production-ready SaaS platform with multi-
 ## Author
 
 Name: Manasa Tadi
-Project: Multi-Tenant SaaS Platform
+Project: Tenantra
+
