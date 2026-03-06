@@ -1,33 +1,29 @@
 # Node
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
-# Environment files
+# Environment
 .env
-.env.local
-.env.development
-.env.production
-
-# OS / Editor
-.DS_Store
-Thumbs.db
-
-# IDE / Tools
-.vscode/
-.cph/
-
-# Build outputs
-dist/
-build/
+.env.*
+!.env.example
 
 # Logs
 logs/
 *.log
 
-# Docker
-docker-data/
+# Build
+dist/
+build/
 
 # Coverage
 coverage/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.cph/
+
+# Docker volumes
+docker-data/
