@@ -112,13 +112,13 @@ Base URL: `http://localhost:5000/api`
 ### 5.2 Tenant Management
 
 - `GET /tenants` (super admin)
-- `GET /tenants/:tenantId` (super admin)
-- `PUT /tenants/:tenantId` (super admin)
+- `GET /tenants/:tenantId` (same-tenant authenticated user or super admin)
+- `PUT /tenants/:tenantId` (tenant admin can update own tenant name; super admin can update tenant configuration)
 
 ### 5.3 Tenant User Management
 
-- `POST /tenants/:tenantId/users` (tenant admin)
-- `GET /tenants/:tenantId/users` (tenant admin)
+- `POST /tenants/:tenantId/users` (tenant admin, own tenant)
+- `GET /tenants/:tenantId/users` (tenant-scoped authenticated access; super admin has global access)
 - `PUT /users/:userId` (tenant admin, or self for full name only)
 - `DELETE /users/:userId` (tenant admin)
 

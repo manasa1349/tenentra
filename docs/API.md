@@ -74,20 +74,20 @@ Logout current user.
 Super admin only.
 
 ### GET `/tenants/:tenantId`
-Super admin only.
+Same-tenant authenticated user or super admin.
 
 ### PUT `/tenants/:tenantId`
-Super admin only.
+Tenant admin (name updates only, own tenant) or super admin (full tenant controls).
 
 ---
 
 ## User Management APIs
 
 ### POST `/tenants/:tenantId/users`
-Tenant admin only.
+Tenant admin only (own tenant).
 
 ### GET `/tenants/:tenantId/users`
-Tenant admin only.
+Tenant-scoped access for authenticated users and super admin.
 
 ### PUT `/users/:userId`
 Tenant admin can update tenant users.
@@ -155,7 +155,7 @@ Returns API + database readiness.
 |--------------|---------|-------|----------|-------|
 | super_admin  | Full    | Cross-tenant visibility, no tenant user CRUD via user endpoint | Full | Full |
 | tenant_admin | No      | Full in own tenant | Full in own tenant | Full in own tenant |
-| user         | No      | Self profile only | Read-only | Assigned-task status updates only |
+| user         | No      | Self update (fullName) + tenant-scoped user listing | Read-only | Assigned-task status updates only |
 
 ---
 

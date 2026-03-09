@@ -42,7 +42,6 @@ backend/
 |  |- middleware/    # auth, RBAC, tenant access, error handling
 |  |- routes/        # endpoint registration
 |  |- services/      # audit log helper
-|  |- utils/         # response helpers
 |  |- validators/    # auth/preferences validators
 |  |- app.js
 |  `- server.js
@@ -81,7 +80,7 @@ backend/
 frontend/
 |- src/
 |  |- api/           # Axios client + API helpers
-|  |- auth/          # auth context + protected routes + auth pages
+|  |- auth/          # auth context + auth pages
 |  |- components/    # reusable UI components
 |  |- pages/         # dashboard, home, tasks, projects, users, profile, settings
 |  |- styles/        # global and page-level styles

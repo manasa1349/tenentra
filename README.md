@@ -235,6 +235,7 @@ These credentials are preloaded and used for evaluation.
 - `/profile` - Personal profile (name/password)
 - `/settings` - User preferences
 - `/users` - User management (tenant_admin only)
+- `/tenants` - Tenant management (super_admin only)
 
 ---
 
